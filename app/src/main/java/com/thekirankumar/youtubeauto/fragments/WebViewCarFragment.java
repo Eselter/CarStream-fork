@@ -9,7 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.Color;
+//import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.session.PlaybackState;
@@ -49,13 +49,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.webkit.URLUtil;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -82,6 +86,7 @@ import com.thekirankumar.youtubeauto.utils.SearchMode;
 import com.thekirankumar.youtubeauto.utils.WebviewUtils;
 import com.thekirankumar.youtubeauto.webview.JavascriptCallback;
 import com.thekirankumar.youtubeauto.webview.VideoEnabledWebChromeClient;
+import com.thekirankumar.youtubeauto.webview.VideoEnabledWebView;
 import com.thekirankumar.youtubeauto.webview.VideoWebView;
 
 import org.json.JSONArray;
@@ -138,7 +143,7 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
             hideToolbar();
         }
     };
-    private boolean isNightMode = false;
+    //private boolean isNightMode = false;
     private boolean fullScreenRequested;
     private boolean clickFirstVideoAfterPageLoad;
     private boolean warningAccepted;
@@ -152,6 +157,7 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
             hideCornerControls(true);
         }
     };
+    private CarEditText urlSearchCarEditText;
     private Button aspectButton;
     private int playerState = PlaybackState.STATE_PAUSED;
     private boolean warningScreenOpen;
@@ -460,21 +466,24 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
                 }
             }
         });
+        urlSearchCarEditText = view.findViewById(R.id.url_search_car_edit_text);
+        urlSearchCarEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
-        ImageButton searchYoutubeButton = view.findViewById(R.id.search_youtube_button);
-        searchYoutubeButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!isSearchShown) {
-                    isSearchShown = true;
-                    searchMode = SearchMode.YOUTUBE;
-                    carUiController.getSearchController().showSearchBox();
-                    carUiController.getSearchController().setSearchHint("YouTube Search");
-                } else {
-                    isSearchShown = false;
-                    carUiController.getSearchController().hideSearchBox();
-                    carUiController.getStatusBarController().hideAppHeader();
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
+                if ((actionId == EditorInfo.IME_ACTION_DONE) || (actionId == EditorInfo.IME_ACTION_GO) || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                    // hide virtual keyboard
+                    isSearchShown = false;                    // hide virtual keyboard
+                    onDone(urlSearchCarEditText, webView);
+                    MainCarActivity mainCarActivity = (MainCarActivity) getContext();
+                    mainCarActivity.a().stopInput();
+                    LinearLayout urlSearchLayout = view.findViewById(R.id.url_search_layout);
+                    urlSearchLayout.setVisibility(View.INVISIBLE);
+                    return true;
                 }
+                return false;
+
             }
         });
 
@@ -484,13 +493,21 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
             public void onClick(View v) {
                 if (!isSearchShown) {
                     isSearchShown = true;
-                    searchMode = SearchMode.GOOGLE;
-                    carUiController.getSearchController().showSearchBox();
-                    carUiController.getSearchController().setSearchHint("Google search");
+//                    searchMode = SearchMode.YOUTUBE;
+//                    carUiController.getSearchController().showSearchBox();
+//                    carUiController.getSearchController().setSearchHint("YouTube Search");
+
+
+                    LinearLayout urlSearchLayout = view.findViewById(R.id.url_search_layout);
+                    urlSearchLayout.setVisibility(View.VISIBLE);
+                    MainCarActivity mainCarActivity = (MainCarActivity) getContext();
+                    mainCarActivity.a().startInput(urlSearchCarEditText);
                 } else {
                     isSearchShown = false;
-                    carUiController.getSearchController().hideSearchBox();
-                    carUiController.getStatusBarController().hideAppHeader();
+                    LinearLayout urlSearchLayout = view.findViewById(R.id.url_search_layout);
+                    urlSearchLayout.setVisibility(View.INVISIBLE);
+//                    carUiController.getSearchController().hideSearchBox();
+//                    carUiController.getStatusBarController().hideAppHeader();
                 }
             }
         });
@@ -524,9 +541,9 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
             webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
         }
         webView.getSettings().setAllowFileAccess(true);
-        if (isNightMode) {
-            webView.setBackgroundColor(Color.BLACK);
-        }
+//        if (isNightMode) {
+//            webView.setBackgroundColor(Color.BLACK);
+//        }
         //webView.getSettings().setTextSize(WebSettings.TextSize.LARGER);
         handler.post(new Runnable() {
             @Override
@@ -673,6 +690,23 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
             }
         });
         mainCarActivity.addActivityCallback(this);
+    }
+
+    private void onDone(EditText editText, VideoEnabledWebView webView) {
+        String pattern = "^((https?|ftp|smtp):\\/\\/)?(www.)?[a-z0-9]+\\.[a-z]+(\\/[a-zA-Z0-9#]+\\/?)*$";
+
+        String s = editText.getText().toString();
+        //boolean validUrl = URLUtil.isValidUrl(s);
+        boolean validUrl = s.matches(pattern);
+
+        if (!validUrl) {
+            s = GOOGLE_SEARCH_URL_BASE + s;
+            webView.loadUrl(s);
+        } else if(URLUtil.isValidUrl(s)){
+            webView.loadUrl(s);
+        } else {
+            webView.loadUrl("http://" + s);
+        }
     }
 
     private void setupEditTextMirroring(final CarEditText fakeEditText) {
@@ -957,8 +991,8 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
 
     @Override
     public void onConfigChanged() {
-        isNightMode = getResources().getBoolean(R.bool.isNight);
-        WebviewUtils.injectNightModeCss(webView, isNightMode);
+//        isNightMode = getResources().getBoolean(R.bool.isNight);
+//        WebviewUtils.injectNightModeCss(webView, isNightMode);
     }
 
     @Override
@@ -1263,12 +1297,13 @@ public class WebViewCarFragment extends CarFragment implements MainCarActivity.A
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-            isNightMode = getResources().getBoolean(R.bool.isNight);
-            WebviewUtils.injectNightModeCss(webView, isNightMode);
+//            isNightMode = getResources().getBoolean(R.bool.isNight);
+//            WebviewUtils.injectNightModeCss(webView, isNightMode);
             progressBar.setVisibility(View.GONE);
+            super.onPageFinished(view, url);
             getSharedPrefs().edit().putString(HOME_URL, url).commit();
-            webView.discoverVideoElements();
+//            webView.discoverVideoElements();
+            WebviewUtils.injectCustomSelectDropDown(webView);
             WebviewUtils.injectFileListingHack(webView);
             BroadcastFromUI.broadcastTitle(getContext(), view.getTitle());
 

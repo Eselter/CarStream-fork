@@ -9,8 +9,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+//import android.database.Cursor;
+//import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -26,7 +26,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.text.TextUtils;
+//import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -45,11 +45,11 @@ import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.github.javiersantos.appupdater.AppUpdater;
-import com.github.javiersantos.appupdater.enums.Display;
-import com.github.javiersantos.appupdater.enums.UpdateFrom;
+//import android.widget.Toast;
+//
+////import com.github.javiersantos.appupdater.AppUpdater;
+////import com.github.javiersantos.appupdater.enums.Display;
+////import com.github.javiersantos.appupdater.enums.UpdateFrom;
 import com.thekirankumar.youtubeauto.BuildConfig;
 import com.thekirankumar.youtubeauto.Manifest;
 import com.thekirankumar.youtubeauto.R;
@@ -68,9 +68,9 @@ import com.thekirankumar.youtubeauto.webview.VideoWebView;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.util.HashSet;
+//import java.util.HashSet;
 
-import eu.chainfire.libsuperuser.Shell;
+//import eu.chainfire.libsuperuser.Shell;
 
 import static com.thekirankumar.youtubeauto.fragments.WebViewCarFragment.HOME_URL;
 import static com.thekirankumar.youtubeauto.fragments.WebViewCarFragment.YOUTUBE_HOME_URL_BASE;
@@ -87,7 +87,7 @@ public class WebViewPhoneFragment extends CarFragment implements BookmarksClickC
     private VideoWebView webView;
     private EditText editText;
     private ProgressBar progressBar;
-    private boolean isNightMode;
+//    private boolean isNightMode;
     private MediaSessionCompat mediaSessionCompat;
     private MediaBrowserCompat mediaBrowser;
     private SharedPreferences sharedPrefs;
@@ -170,50 +170,51 @@ public class WebViewPhoneFragment extends CarFragment implements BookmarksClickC
             showBookmarksScreen();
         } else if (item.getItemId() == R.id.settings) {
             startActivity(new Intent(getContext(), SettingsPhoneActivity.class));
-        } else if (item.getItemId() == R.id.unlock) {
-            unlock();
         }
+//        else if (item.getItemId() == R.id.unlock) {
+//            unlock();
+//        }
         return super.onOptionsItemSelected(item);
     }
 
-    private void unlock() {
-        if (Shell.SU.available()) {
-            Shell.SU.run("pm disable --user 0 com.google.android.gms/.phenotype.service.sync.PhenotypeConfigurator");
-            Shell.SU.run("pm disable --user 0 com.google.android.gms/.phenotype.service.PhenotypeService");
-            Shell.SU.run("chmod 777 /data/data/com.google.android.gms/databases/phenotype.db*");
-            try {
-                SQLiteDatabase sql = SQLiteDatabase.openDatabase("/data/data/com.google.android.gms/databases/phenotype.db", null, 0);
-                if (sql != null) {
-                    Cursor cursor = sql.rawQuery("SELECT stringVal FROM Flags WHERE packageName=? AND name=?;", new String[]{"com.google.android.gms.car", "app_white_list"});
-                    HashSet<String> packageNames = new HashSet<>();
-                    if (cursor.getCount() > 0) {
-                        while (cursor.moveToNext()) {
-                            String stringVal = cursor.getString(cursor.getColumnIndex("stringVal"));
-                            if (stringVal != null) {
-                                packageNames.add(stringVal);
-                            }
-                        }
-                    }
-                    cursor.close();
-                    packageNames.add(getActivity().getApplicationContext().getPackageName()); //add myself
-                    sql.execSQL("DELETE FROM Flags WHERE packageName=\"com.google.android.gms.car\" AND name=\"app_white_list\";");
-                    String joinedPackageNames = TextUtils.join(",", packageNames);
-                    sql.execSQL("INSERT INTO Flags (packageName, version, flagType, partitionId, user, name, stringVal, committed) VALUES (\"com.google.android.gms.car\", 209, 0, 0, \"\", \"app_white_list\", \"" + joinedPackageNames + "\", 1);");
-                    sql.execSQL("INSERT INTO Flags (packageName, version, flagType, partitionId, user, name, stringVal, committed) VALUES (\"com.google.android.gms.car\", 224, 0, 0, \"\", \"app_white_list\", \"" + joinedPackageNames + "\", 1);");
-                    sql.close();
-                    Toast.makeText(getActivity(), "Successfully unlocked. Reboot phone and connect to Android Auto", Toast.LENGTH_LONG).show();
-                }
-            } catch (Exception e) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("sql exception : ");
-                stringBuilder.append(e.toString());
-                Toast.makeText(getActivity(), "Error in executing commands : " + stringBuilder.toString(), Toast.LENGTH_LONG).show();
-            }
-            Shell.SU.run("chmod 660 /data/data/com.google.android.gms/databases/phenotype.db*");
-            return;
-        }
-        Toast.makeText(getActivity(), "Root not available, install SuperSU and perform root first.", Toast.LENGTH_LONG).show();
-    }
+//    private void unlock() {
+//        if (Shell.SU.available()) {
+//            Shell.SU.run("pm disable --user 0 com.google.android.gms/.phenotype.service.sync.PhenotypeConfigurator");
+//            Shell.SU.run("pm disable --user 0 com.google.android.gms/.phenotype.service.PhenotypeService");
+//            Shell.SU.run("chmod 777 /data/data/com.google.android.gms/databases/phenotype.db*");
+//            try {
+//                SQLiteDatabase sql = SQLiteDatabase.openDatabase("/data/data/com.google.android.gms/databases/phenotype.db", null, 0);
+//                if (sql != null) {
+//                    Cursor cursor = sql.rawQuery("SELECT stringVal FROM Flags WHERE packageName=? AND name=?;", new String[]{"com.google.android.gms.car", "app_white_list"});
+//                    HashSet<String> packageNames = new HashSet<>();
+//                    if (cursor.getCount() > 0) {
+//                        while (cursor.moveToNext()) {
+//                            String stringVal = cursor.getString(cursor.getColumnIndex("stringVal"));
+//                            if (stringVal != null) {
+//                                packageNames.add(stringVal);
+//                            }
+//                        }
+//                    }
+//                    cursor.close();
+//                    packageNames.add(getActivity().getApplicationContext().getPackageName()); //add myself
+//                    sql.execSQL("DELETE FROM Flags WHERE packageName=\"com.google.android.gms.car\" AND name=\"app_white_list\";");
+//                    String joinedPackageNames = TextUtils.join(",", packageNames);
+//                    sql.execSQL("INSERT INTO Flags (packageName, version, flagType, partitionId, user, name, stringVal, committed) VALUES (\"com.google.android.gms.car\", 209, 0, 0, \"\", \"app_white_list\", \"" + joinedPackageNames + "\", 1);");
+//                    sql.execSQL("INSERT INTO Flags (packageName, version, flagType, partitionId, user, name, stringVal, committed) VALUES (\"com.google.android.gms.car\", 224, 0, 0, \"\", \"app_white_list\", \"" + joinedPackageNames + "\", 1);");
+//                    sql.close();
+//                    Toast.makeText(getActivity(), "Successfully unlocked. Reboot phone and connect to Android Auto", Toast.LENGTH_LONG).show();
+//                }
+//            } catch (Exception e) {
+//                StringBuilder stringBuilder = new StringBuilder();
+//                stringBuilder.append("sql exception : ");
+//                stringBuilder.append(e.toString());
+//                Toast.makeText(getActivity(), "Error in executing commands : " + stringBuilder.toString(), Toast.LENGTH_LONG).show();
+//            }
+//            Shell.SU.run("chmod 660 /data/data/com.google.android.gms/databases/phenotype.db*");
+//            return;
+//        }
+//        Toast.makeText(getActivity(), "Root not available, install SuperSU and perform root first.", Toast.LENGTH_LONG).show();
+//    }
 
 
     @Override
@@ -317,12 +318,12 @@ public class WebViewPhoneFragment extends CarFragment implements BookmarksClickC
 
             }
         });
-        AppUpdater appUpdater = new AppUpdater(getActivity())
-                .setUpdateFrom(UpdateFrom.GITHUB)
-                .setGitHubUserAndRepo(GITHUB_REPO_USERNAME, GITHUB_REPO_URL)
-                .setDisplay(Display.DIALOG)
-                .setButtonDoNotShowAgain("Huh, not interested");
-        appUpdater.start();
+//        AppUpdater appUpdater = new AppUpdater(getActivity())
+//                .setUpdateFrom(UpdateFrom.GITHUB)
+//                .setGitHubUserAndRepo(GITHUB_REPO_USERNAME, GITHUB_REPO_URL)
+//                .setDisplay(Display.DIALOG)
+//                .setButtonDoNotShowAgain("Huh, not interested");
+//        appUpdater.start();
 
     }
 
@@ -572,7 +573,7 @@ public class WebViewPhoneFragment extends CarFragment implements BookmarksClickC
             progressBar.setVisibility(View.GONE);
             Log.d(TAG, "page finished " + url);
             super.onPageFinished(view, url);
-            WebviewUtils.injectNightModeCss(webView, isNightMode);
+//            WebviewUtils.injectNightModeCss(webView, isNightMode);
             WebviewUtils.injectFileListingHack(webView);
             getSharedPrefs().edit().putString(HOME_URL, url).commit();
         }

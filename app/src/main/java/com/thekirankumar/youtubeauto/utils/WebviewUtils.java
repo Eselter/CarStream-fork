@@ -15,6 +15,7 @@ public class WebviewUtils {
     public static final String NIGHT_CSS_PATH = "https://cdn.rawgit.com/thekirankumar/youtube-android-auto/8bfdac63/night_css/";
     private static final String FILE_BROWSER_SCRIPT_PATH = "file:///android_asset/filebrowser.js";
     private static final String FILE_BROWSER_CSS_PATH = "file:///android_asset/filebrowser.css";
+    private static final String VANILLA_JS_DROPDOWN_SCRIPT_PATH = "file:///android_asset/filebrowser.js";
 
     public static void injectNightModeCss(WebView webView, boolean isNightMode) {
         String domainName = null;
@@ -46,6 +47,27 @@ public class WebviewUtils {
                     "}";
             webView.loadUrl("javascript:" + injection);
         }
+
+    }
+
+    public static void injectCustomSelectDropDown(WebView webView) {
+        String domainName = null;
+        try {
+            domainName = getDomainName(webView.getUrl());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        String injection = "for(i=0;i<document.getElementsByTagName('select').length;i++){" +
+                "document.getElementsByTagName('select')[i].onclick=function(){" +
+                  "if(this.selectedIndex < this.options.length-1) {" +
+                      "this.selectedIndex++" +
+                  "} else {" +
+                      "this.selectedIndex=0" +
+                  "}" +
+                  "this.dispatchEvent(new Event('change', { bubbles: true }));" +
+                "};}";
+        webView.loadUrl("javascript:" + injection);
 
     }
 
